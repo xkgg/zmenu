@@ -43710,6 +43710,57 @@ ${s.comment}`:s.comment
 `):typeof i=="string"?i:"",
   Hg=i=>Array.isArray(i)?i.map(String):typeof i=="string"&&i.length>0?i.split(`
 `):[],
+  zmenuActionSchemas={
+    COMMAND:{yamlType:"player-command",exportKeys:{command:"commands",command_in_chat:"command-in-chat"},listKeys:["command"]},
+    CONSOLE_COMMAND:{yamlType:"console-command",exportKeys:{command:"commands"},listKeys:["command"]},
+    PLAYER_COMMAND_AS_OP:{yamlType:"player-command-as-op",exportKeys:{command:"commands"},listKeys:["command"]},
+    MESSAGE:{yamlType:"message",exportKeys:{message:"messages",mini_message:"minimessage"},listKeys:["message"]},
+    BROADCAST:{yamlType:"broadcast",exportKeys:{message:"messages",mini_message:"minimessage"},listKeys:["message"]},
+    CHAT:{yamlType:"chat",exportKeys:{message:"messages"},listKeys:["message"]},
+    RANDOM_PLAYER_COMMAND:{yamlType:"random-player-command",exportKeys:{command:"commands",command_in_chat:"command-in-chat"},listKeys:["command"]},
+    RANDOM_CONSOLE_COMMAND:{yamlType:"random-console-command",exportKeys:{command:"commands"},listKeys:["command"]},
+    ACTIONBAR:{yamlType:"action-bar",exportKeys:{mini_message:"minimessage"},listKeys:[]},
+    BROADCAST_SOUND:{yamlType:"broadcast-sound",exportKeys:{},listKeys:[]},
+    REFRESH_INVENTORY:{yamlType:"refresh-inventory",exportKeys:{},listKeys:[]},
+    CHANGE_TITLE:{yamlType:"change-title",exportKeys:{inventory_name:"inventory-name"},listKeys:[]},
+    INVENTORY:{yamlType:"inventory",exportKeys:{},listKeys:["arguments"]}
+  },
+  zmenuActionTypeToYaml=i=>{
+    const r=String(i||"").toUpperCase(),s=zmenuActionSchemas[r];
+    return(s==null?void 0:s.yamlType)||r.toLowerCase().replaceAll("_","-")
+  },
+  zmenuActionTypeFromYaml=i=>{
+    const r=String(i||"").toUpperCase().replaceAll("-","_");
+    return r==="PLAYER_COMMAND"?"COMMAND":r==="CONSOLE_COMMAND"?"CONSOLE_COMMAND":r==="PLAYER_COMMAND_AS_OP"?"PLAYER_COMMAND_AS_OP":r==="ACTION_BAR"?"ACTIONBAR":r
+  },
+  zmenuActionExportKey=(i,r)=>{
+    var c;
+    const s=zmenuActionSchemas[String(i||"").toUpperCase()];
+    return((c=s==null?void 0:s.exportKeys)==null?void 0:c[r])||String(r).replaceAll("_","-")
+  },
+  zmenuActionImportKey=(i,r)=>{
+    const s=zmenuActionSchemas[String(i||"").toUpperCase()],c=s==null?void 0:s.exportKeys;
+    if(c)for(const[d,h]of Object.entries(c))if(h===r)return d;
+    return String(r).replaceAll("-","_")
+  },
+  zmenuActionIsList=(i,r)=>{
+    var c;
+    const s=zmenuActionSchemas[String(i||"").toUpperCase()];
+    return!!((c=s==null?void 0:s.listKeys)!=null&&c.includes(r))
+  },
+  zmenuExpandSlots=i=>{
+    const r=Array.isArray(i)?i:[i],s=[];
+    return r.forEach(c=>{
+      const d=String(c).trim().match(/^(\d+)\s*-\s*(\d+)$/);
+      if(d){
+        const h=Number(d[1]),m=Number(d[2]),k=h<=m?1:-1;
+        for(let _=h;k>0?_<=m:_>=m;_+=k)s.push(_)
+      }else{
+        const h=Sr(c,NaN);
+        Number.isFinite(h)&&s.push(h)
+      }
+    }),[...new Set(s)]
+  },
   TO=i=>{
     const r=i.replace("icon-minecraft-",
     "");
@@ -46005,6 +46056,13 @@ ${s.comment}`:s.comment
       }
     }
   },
+  zmenuUniqueItems=i=>{
+    const r=new Set;
+    return i.filter(s=>{
+      const c=String(s.material||s.css||s.name||"").trim().toUpperCase();
+      return!!c&&!r.has(c)&&(r.add(c),!0)
+    })
+  },
   dT=async()=>Wg||Ug||(Ug=fetch("./new/items.txt").then(i=>i.ok?i.json():null).then(i=>{
     const r=lT.length>0?lT:RO.map(s=>`icon-minecraft-${s.toLowerCase().replaceAll("_","-")}`),
     s=new Map(r.map((c,
@@ -46012,8 +46070,8 @@ ${s.comment}`:s.comment
     DO(c,
     d)])),
     c=Array.isArray(i==null?void 0:i.items)?i.items.filter(d=>s.delete(d.css)):[];
-    return Wg=c.length?[...c,
-    ...s.values()]:r.map(DO)
+    return Wg=zmenuUniqueItems(c.length?[...c,
+    ...s.values()]:r.map(DO))
   }).catch(()=>Wg=(lT.length>0?lT:RO.map(r=>`icon-minecraft-${r.toLowerCase().replaceAll("_","-")}`)).map(DO)),
   Ug),
   Ak=i=>({
@@ -46182,17 +46240,45 @@ ${s.comment}`:s.comment
     editorButtonTypes:s=Lk
   })=>{
     const c={
-    };
+    },zmenuProcessedSlots=new Set;
     return r.forEach((d,
     h)=>{
       var O;
-      if(!(d!=null&&d.content))return;
+      if(zmenuProcessedSlots.has(h)||!(d!=null&&d.content))return;
       const m=d.button||Ak(h),
       k={
         slot:Sr(m.slot,
         h%Ff),
         item:AO(d)
       };
+      if(m.slot_group&&Array.isArray(m.slots)&&m.slots.length>1){
+        const zmenuGroupSlots=[...new Set(m.slots.map(P=>Sr(P,-1)).filter(P=>P>=0&&P<Ff))],zmenuMembers=r.map((P,j)=>({slot:P,index:j})).filter(P=>{
+          var j;
+          return P.slot!=null&&P.slot.content&&((j=P.slot.button)==null?void 0:j.slot_group)===m.slot_group
+        }),zmenuComparable=P=>{
+          const{
+            slot:j,
+            page:B,
+            name:L,
+            slot_group:G,
+            slots:Z,
+            actions:V,
+            ...J
+          }=P.button||{};
+          return JSON.stringify({
+            content:P.content,
+            button:{
+              ...J,
+              actions:Array.isArray(V)?V.map(({id:B,...L})=>L):V
+            }
+          })
+        },zmenuReference=zmenuComparable(d);
+        if(zmenuGroupSlots.length>1&&zmenuMembers.length===zmenuGroupSlots.length&&zmenuMembers.every(P=>zmenuComparable(P.slot)===zmenuReference)){
+          zmenuMembers.forEach(P=>zmenuProcessedSlots.add(P.index)),
+          delete k.slot,
+          k.slots=zmenuGroupSlots
+        }
+      }
       Sr(m.page,
       1)!==1&&(k.page=Sr(m.page,
       1));
@@ -46215,11 +46301,14 @@ ${s.comment}`:s.comment
       m.console_commands&&(k.consoleCommands=Hg(m.console_commands)),
       m.actions&&m.actions.length>0&&(k.actions=m.actions.map(a=>{
         const e={
-          type:a.type
+          type:zmenuActionTypeToYaml(a.type)
         };
         a.values&&Object.entries(a.values).forEach(([t,
         n])=>{
-          n!==""&&n!==null&&n!==undefined&&(e[t]=n)
+          if(n!==""&&n!==null&&n!==undefined){
+            const zmenuKey=zmenuActionExportKey(a.type,t);
+            e[zmenuKey]=zmenuActionIsList(a.type,t)?Hg(n):n
+          }
         });
         return e
       }).filter(a=>Object.keys(a).length>1||Object.keys(a).includes("type"))),
@@ -46316,7 +46405,7 @@ ${s.comment}`:s.comment
       Math.max(1,
       Sr(P.page,
       1))),
-      B=Array.isArray(P.slots)?P.slots:[P.slot??0],
+      B=zmenuExpandSlots(P.slots??P.slot??0),
       L=await LO(P.item||{
       });
       for(const G of B){
@@ -46329,6 +46418,8 @@ ${s.comment}`:s.comment
           slot:Z,
           page:j,
           name:String(T),
+          slots:B,
+          slot_group:B.length>1?`${j}:${T}:${B.join(",")}`:null,
           type_id:NO(P.type),
           amount:Sr((h=P.item)==null?void 0:h.amount,
           1),
@@ -46351,16 +46442,20 @@ ${s.comment}`:s.comment
           messages:$g(P.messages),
           commands:$g(P.commands),
           console_commands:$g(P.consoleCommands),
-          actions:Array.isArray(P.actions)?P.actions.map(a=>{
-            const e={
+          actions:Array.isArray(P.actions)?P.actions.filter(a=>a&&typeof a=="object"&&!Array.isArray(a)).map(a=>{
+            const zmenuType=zmenuActionTypeFromYaml(a.type),
+            e={
             };
             Object.entries(a).forEach(([t,
             n])=>{
-              t!=="type"&&(e[t]=n)
+              if(t!=="type"){
+                const zmenuKey=zmenuActionImportKey(zmenuType,t);
+                e[zmenuKey]=zmenuActionIsList(zmenuType,zmenuKey)?$g(n):n
+              }
             });
             return{
               id:Date.now()+Math.random(),
-              type:String(a.type||"COMMAND").toUpperCase(),
+              type:zmenuType||"COMMAND",
               values:e
             }
           }):[],
@@ -55391,10 +55486,9 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     },
     S=()=>{
       if(m==null||m.length===0)return d!==""?s.filter(T=>T.version.minecraft_version<=d):s;
-      const x=s.filter(T=>T.name.toLowerCase().includes(m.toLowerCase())||(T.chinese_name&&T.chinese_name.includes(m)));
-      return x.sort((T,
-      O)=>T.name.localeCompare(O.name)),
-      d!==""?x.filter(T=>T.version.minecraft_version<=d):x
+      const x=m.trim().toLowerCase().replace(/[-_\s:]+/g,""),
+      T=s.filter(O=>[O.name,O.chinese_name,O.material,O.old_material,O.minecraft_id,O.css,O.material&&`minecraft:${O.material.toLowerCase()}`].some(P=>String(P??"").toLowerCase().replace(/[-_\s:]+/g,"").includes(x)));
+      return d!==""?T.filter(O=>O.version.minecraft_version<=d):T
     };
     return R.jsxs("div",
     {
@@ -63365,6 +63459,29 @@ Valid keys: `+JSON.stringify(Object.keys(X),
     const c=i.button.actions||[],
     [d,
     h]=U.useState("");
+    U.useEffect(()=>{
+      const zmenuActionStateHandler=te=>{
+        const ge=(te==null?void 0:te.detail)||{},Me=Number(ge.index);
+        if(!Number.isInteger(Me)||Me<0||Me>=c.length)return;
+        if(ge.operation==="move"){
+          const Se=Math.max(0,Math.min(c.length-1,Number(ge.toIndex)));
+          if(!Number.isInteger(Se)||Se===Me)return;
+          const Ie=[...c],Le=Ie.splice(Me,1)[0];
+          Ie.splice(Se,0,Le),s(Ie)
+        }
+        if(ge.operation==="duplicate"){
+          const Se=c[Me];
+          s([...c.slice(0,Me+1),{
+            ...Se,
+            id:Date.now()+Math.random(),
+            values:{
+              ...Se.values
+            }
+          },...c.slice(Me+1)])
+        }
+      };
+      return document.addEventListener("zmenu-actions-change",zmenuActionStateHandler),()=>document.removeEventListener("zmenu-actions-change",zmenuActionStateHandler)
+    },[c,s]);
     if(!r||r.length===0)return null;
     const m=()=>{
       if(!d)return;

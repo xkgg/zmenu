@@ -1,1 +1,22 @@
-{"name":"","short_name":"","icons":[{"src":"/android-chrome-192x192.png","sizes":"192x192","type":"image/png"},{"src":"/android-chrome-512x512.png","sizes":"512x512","type":"image/png"}],"theme_color":"#ffffff","background_color":"#ffffff","display":"standalone"}
+{
+  "name": "zMenu 菜单编辑器",
+  "short_name": "zMenu 编辑器",
+  "description": "用于创建和导出 zMenu 菜单配置的本地编辑器。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "./android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#13132a",
+  "background_color": "#13132a",
+  "display": "standalone"
+}

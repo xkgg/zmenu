@@ -297,7 +297,7 @@
   box-shadow: none !important;
 }
 .zm-card-collapse::before {
-  content: "⌄" !important;
+  content: "\2303" !important;
   display: block !important;
   color: currentColor !important;
   font: 700 22px/14px Arial, sans-serif !important;
@@ -317,12 +317,12 @@
   color: #0e7490 !important;
   box-shadow: 0 0 0 2px rgba(165, 243, 252, .45) !important;
 }
+.zm-card-collapsed .zm-card-collapse::before {
+  content: "\2304" !important;
+  transform: translateY(1px) rotate(0deg);
+}
 .zm-card-collapsed .zm-collapse-arrow {
-  display: inline-block !important;
-  visibility: visible !important;
-  color: currentColor !important;
-  transform: translateY(-1px) rotate(-90deg) scale(1.15) !important;
-  filter: drop-shadow(0 1px 2px rgba(8, 145, 178, .45));
+  display: none !important;
 }
 /* 原卡片头部也可能带有 mb-* 类；折叠时必须保留展开入口。 */
 .zm-card-collapsed .zm-card-header {
