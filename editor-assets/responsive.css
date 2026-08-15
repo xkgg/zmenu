@@ -34,6 +34,18 @@ body {
   max-width: 100%;
 }
 
+/* The upstream stylesheet hides the entire editor below 500px. */
+@media (max-width: 500px) {
+  #builder {
+    display: block !important;
+    min-height: 100dvh;
+  }
+
+  .phone {
+    display: none !important;
+  }
+}
+
 @media (max-width: 980px) {
   #builder .inventory-builder > .d-flex {
     flex-direction: column !important;
@@ -133,11 +145,21 @@ body {
 
   #builder .configurations {
     display: block;
+    height: auto;
+    margin-left: 0;
   }
 
   #builder .configurations > :not(.resizer-x) {
     width: 100%;
     min-width: 0;
+    height: auto;
+  }
+
+  #builder .configurations-button-top,
+  #builder .configurations-button-bottom {
+    height: auto;
+    max-height: none;
+    overflow: visible;
   }
 
   #builder .configurations-button-top,
