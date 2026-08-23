@@ -4,8 +4,8 @@
 
 ## 特性
 
-- **1.21 物品支持**：内置 1749 个物品图标，1.21 默认显示 68 个新物品
-- **版本筛选**：下拉支持 1.21 到 1.8，按 `new/items.txt` 排序
+- **完整物品目录**：内置 1783 个英文物品，覆盖 Minecraft 1.0 至 26.2
+- **版本筛选**：下拉与 Minecraft Inventory Builder 保持一致，支持 32 个版本筛选
 - **26 种内置 Actions**：MESSAGE、COMMAND、CHAT、SOUND、TELEPORT 等操作类型
 - **自定义 ADD AN ACTION**：参考官网的紫蓝渐变按钮和操作类型选择弹窗
 - **卡片化操作面板**：支持折叠、展开、上移、下移、复制、删除
@@ -23,7 +23,7 @@
 │   ├── responsive.css      # 桌面/Android 窄屏响应式布局与触控适配
 │   └── style.css           # 物品图标 CSS
 ├── images/
-│   └── sprites.webp        # 1.21 物品精灵图
+│   └── sprites.webp        # 物品精灵图（含 26.2 坐标）
 ├── new/                    # 参考资源
 │   ├── items.txt           # 物品排序与版本数据
 │   ├── sprites.webp        # 最新版精灵图
@@ -70,7 +70,7 @@ python -m http.server 8765 --bind 0.0.0.0
 
 ## 物品数据来源
 
-- 物品排序与版本信息来自 `new/items.txt`
+- 物品排序与版本信息来自 `new/items.txt`（参考 Minecraft Inventory Builder 的离线快照）
 - 图标精灵图来自 `images/sprites.webp`
 - CSS 坐标参考 `new/app-Kzu55Ish.css`
 
