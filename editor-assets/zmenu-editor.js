@@ -53804,8 +53804,8 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
       E(Q=>Q.some(K=>K.material===Y)?Q:[...Q,J]),
       T("custom")
     };
-    let M=[...s,...B.filter(H=>!s.some(Y=>Y.material===H.material))];
-    x==="favorites"?M=M.filter(H=>O.includes(H.material)):x==="custom"&&(M=B),
+    let M=x==="custom"?[...B]:[...s];
+    x==="favorites"&&(M=M.filter(H=>O.includes(H.material))),
     M=M.filter(H=>![H.name,H.chinese_name,H.material,H.old_material,H.minecraft_id].some(Y=>/[\u3400-\u9fff]/.test(String(Y??"")))),
     m.trim()&&(M=M.filter(H=>[H.name,H.material,H.old_material,H.minecraft_id,H.css,H.material&&`minecraft:${H.material.toLowerCase()}`].some(Y=>V(Y).includes(V(m))))),
     d!==""&&(M=M.filter(H=>String(H.version?.version??H.version?.minecraft_version??"")===String(d))),
